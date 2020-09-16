@@ -98,20 +98,20 @@ static NSString *const kErrorAuthDenied = @"E_PHOTO_LIBRARY_AUTH_DENIED";
 
 typedef void (^PhotosAuthorizedBlock)(void);
 
-static void requestPhotoLibraryAccess(RCTPromiseRejectBlock reject, PhotosAuthorizedBlock authorizedBlock) {
-  PHAuthorizationStatus authStatus = [PHPhotoLibrary authorizationStatus];
-  if (authStatus == PHAuthorizationStatusRestricted) {
-    reject(kErrorAuthRestricted, @"Access to photo library is restricted", nil);
-  } else if (authStatus == PHAuthorizationStatusAuthorized) {
-    authorizedBlock();
-  } else if (authStatus == PHAuthorizationStatusNotDetermined) {
-    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
-      requestPhotoLibraryAccess(reject, authorizedBlock);
-    }];
-  } else {
-    reject(kErrorAuthDenied, @"Access to photo library was denied", nil);
-  }
-}
+//static void requestPhotoLibraryAccess(RCTPromiseRejectBlock reject, PhotosAuthorizedBlock authorizedBlock) {
+//  PHAuthorizationStatus authStatus = [PHPhotoLibrary authorizationStatus];
+//  if (authStatus == PHAuthorizationStatusRestricted) {
+//    reject(kErrorAuthRestricted, @"Access to photo library is restricted", nil);
+//  } else if (authStatus == PHAuthorizationStatusAuthorized) {
+//    authorizedBlock();
+//  } else if (authStatus == PHAuthorizationStatusNotDetermined) {
+//    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+//      requestPhotoLibraryAccess(reject, authorizedBlock);
+//    }];
+//  } else {
+//    reject(kErrorAuthDenied, @"Access to photo library was denied", nil);
+//  }
+//}
 
 RCT_EXPORT_METHOD(saveToCameraRoll:(NSURLRequest *)request
                   options:(NSDictionary *)options
@@ -192,8 +192,8 @@ RCT_EXPORT_METHOD(saveToCameraRoll:(NSURLRequest *)request
     inputURI = request.URL;
     saveWithOptions();
   };
-
-  requestPhotoLibraryAccess(reject, loadBlock);
+  loadBlock();
+//  requestPhotoLibraryAccess(reject, loadBlock);
 }
 
 RCT_EXPORT_METHOD(getAlbums:(NSDictionary *)params
@@ -300,8 +300,7 @@ RCT_EXPORT_METHOD(getPhotos:(NSDictionary *)params
   
   BOOL __block stopCollections_;
   NSString __block *currentCollectionName;
-
-  requestPhotoLibraryAccess(reject, ^{
+  
     void (^collectAsset)(PHAsset*, NSUInteger, BOOL*) = ^(PHAsset * _Nonnull asset, NSUInteger assetIdx, BOOL * _Nonnull stopAssets) {
       NSString *const uri = [NSString stringWithFormat:@"ph://%@", [asset localIdentifier]];
       NSString *_Nullable originalFilename = NULL;
@@ -415,7 +414,7 @@ RCT_EXPORT_METHOD(getPhotos:(NSDictionary *)params
       RCTResolvePromise(resolve, assets, hasNextPage);
       resolvedPromise = YES;
     }
-  });
+  
 }
 
 RCT_EXPORT_METHOD(deletePhotos:(NSArray<NSString *>*)assets
